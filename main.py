@@ -26,6 +26,11 @@ if user_stats_file.is_file():
 else:
   user_counter = {}
 
+class LeaderBoardPosition:
+    def __init__(self, user, count):
+        self.user = user
+        self.count = count
+
 @bot.event
 async def on_ready():
     print('Logged in as')
@@ -35,13 +40,42 @@ async def on_ready():
 
 @bot.command()
 async def leaderboard(ctx):
-    await ctx.send("coming soon tm")
+  keys = db.keys()
+  leaderboard_list = []
+  for k in keys:
+    value = db[k]
+    leaderboard_list.append(LeaderBoardPosition(k, value))
+  top = sorted(leaderboard_list, key=lambda x: x.count, reverse=True)
+  em = discord.Embed(title=f":3 Leaderboard <:copium:856725125507186708>",     description="<:copium:856725125507186708> Leaderboard of most usages of :3 <:copium:856725125507186708>")
+  for i in range(len(top)):
+    user = top[i].user
+    name = await bot.fetch_user(user)
+    value = top[i].count
+    em.add_field(name=f"{str(i + 1)}. {name}", value=f"{value}", inline=False)
+  await ctx.send(embed=em)
   
 @bot.command()
 async def count(ctx):
   userID = ctx.author.id
   userID_string = '<@!' + str(userID) + '>'
-  await ctx.send(f"coming soon tm {userID_string}")
+  userID = str(userID)
+  try:
+    user_total = int(db[userID])
+  except:
+    user_total = 0
+  if type(user_total) != int or user_total == 0:
+    bot_message = "<:poggies:748558867272695819> " + userID_string + " has never used :3!"
+  elif user_total == 1:
+    bot_message = "colon three <:copium:856725125507186708>\n" + userID_string + " has only used :3 1 time <:sadge:827995795596116030>"
+  elif user_total <= 50:
+    bot_message = "colon three <:copium:856725125507186708>\n" + userID_string + " has only used :3 " + str(user_total) + " times <:sadge:827995795596116030>"
+  elif user_total <= 100:
+    bot_message = "colon three <:copium:856725125507186708>\n" + userID_string + " has used :3 " + str(user_total) + " times!"
+  elif user_total <= 500:
+    bot_message = "colon three <:copium:856725125507186708>\n" + userID_string + " has used :3 a whopping " + str(user_total) + " times! <:pepega:861280783968894987>"
+  else:
+    bot_message = "colon three <:copium:856725125507186708>\n" + userID_string + " has used :3 " + str(user_total) + " times! Woman is that you?<:womanhappy:814749175031136266>"
+  await ctx.send(bot_message)
 
 @bot.event
 async def on_message(message):
