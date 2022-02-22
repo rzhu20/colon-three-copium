@@ -4,7 +4,10 @@ import discord
 from discord.ext import commands
 import os
 import os.path
-import random
+from pathlib import Path
+from keep_alive import keep_alive
+from replit import db
+
 token = os.environ['token']
 description = '''An example bot to showcase the discord.ext.commands extension
 module.
@@ -24,8 +27,10 @@ async def on_ready():
     print('------')
 
 @bot.command()
-async def test(ctx, arg):
-    await ctx.send(arg)
+async def leaderboard(ctx):
+    await ctx.send("coming soon tm")
 
 
 bot.run(token)
+keep_alive()
+#colon_three_copium_counts.close()
