@@ -9,6 +9,9 @@ from pathlib import Path
 from keep_alive import keep_alive
 from replit import db
 
+c3_stats = 'c3_cnt'
+wordle_stats_ = 'wordle_stats'
+
 
 token = os.environ['token']
 description = '''A lovely bot that keeps track of the number of colon threes a user sends as well as having a Wordle leaderboard.'''
@@ -18,18 +21,18 @@ intents.members = True
 
 bot = commands.Bot(command_prefix='!', description=description, intents=intents)
 
-
-user_stats = None
-user_stats_file = Path("user_counter.json")
-if user_stats_file.is_file():
-  user_counter = json.load(open("user_counter.json"))
-else:
-  user_counter = {}
-
 class LeaderBoardPosition:
     def __init__(self, user, count):
         self.user = user
         self.count = count
+
+#num_games, best_score, total_tries
+class WordleLeaderBoardPosition:
+    def __init__(self, user, wordle_stats):
+        self.user = user
+        self.num_games = wordle_stats[0]
+        self.average = wordle_stats[2] / wordle_stats[0]
+        self.best_score = wordle_stats[1]
 
 @bot.event
 async def on_ready():
@@ -39,12 +42,23 @@ async def on_ready():
     print('------')
 
 @bot.command()
+async def transfer_stats(ctx):
+  keys = db.keys()
+  for k in keys:
+    value = db[k]
+    print(value, type(value))
+    db[k] = dict()
+    db[k][c3_stats] = value
+  await ctx.send('done transfering info')  
+  
+@bot.command()
 async def leaderboard(ctx):
   keys = db.keys()
   leaderboard_list = []
   for k in keys:
-    value = db[k]
-    leaderboard_list.append(LeaderBoardPosition(k, value))
+    values = db[k]
+    if c3_stats in values.keys():
+      leaderboard_list.append(LeaderBoardPosition(k, values[c3_stats]))
   top = sorted(leaderboard_list, key=lambda x: x.count, reverse=True)
   em = discord.Embed(title=f":3 Leaderboard <:copium:856725125507186708>",     description="<:copium:856725125507186708> Leaderboard of most usages of :3 <:copium:856725125507186708>")
   for i in range(len(top)):
@@ -60,7 +74,7 @@ async def count(ctx):
   userID_string = '<@!' + str(userID) + '>'
   userID = str(userID)
   try:
-    user_total = int(db[userID])
+    user_total = int(db[userID][c3_stats])
   except:
     user_total = 0
   if type(user_total) != int or user_total == 0:
@@ -77,7 +91,30 @@ async def count(ctx):
     bot_message = "colon three <:copium:856725125507186708>\n" + userID_string + " has used :3 " + str(user_total) + " times! Woman is that you?<:womanhappy:814749175031136266>"
   await ctx.send(bot_message)
 
-@bot.event
+@bot.command()
+
+async def wordle(ctx):
+  keys = db.keys()
+  leaderboard_list = []
+  for k in keys:
+    values = db[k]
+    if wordle_stats_ in values.keys() and values[wordle_stats_][0] > 0:
+      leaderboard_list.append(WordleLeaderBoardPosition(k, values[wordle_stats_]))
+  top = sorted(leaderboard_list, key=lambda x: x.average, reverse=True)
+  em = discord.Embed(title=f"Wordle Leaderboard",     description="Leaderboard of Wordle Stats!")
+  for i in range(len(top)):
+    user = top[i].user
+    name = await bot.fetch_user(user)
+    value = top[i].average
+    em.add_field(name=f"{str(i + 1)}. {name}", value=f"{value}", inline=False)
+  await ctx.send(embed=em)
+
+#@bot.command()
+#async def resetWordle(ctx):
+#  for k in db.keys():
+#    db[k][wordle_stats_] = [0, 999, 0]
+  
+@bot.event 
 async def on_message(message):
   if message.author == bot.user:
     return
@@ -87,9 +124,10 @@ async def on_message(message):
     except:
       await message.channel.send("Invalid Command!")
       return
-  userID = message.author.id
-  userID_string = '<@!' + str(userID) + '>'
+  userID = str(message.author.id)
+  userID_string = '<@!' + userID + '>'
   msg = message.content
+  #count number of :3
   cnt = 0
   for i in range(len(msg) - 1):
     if (msg[i:i + 2] == ':3'):
@@ -98,15 +136,37 @@ async def on_message(message):
         and (i - 1 == -1 or msg[i - 1 : i] != ':'):
           cnt += 1
   if cnt > 0:
-    userID = str(userID)
+    
     try:
-      user_total = int(db[userID]) + cnt
+      user_total = int(db[userID][c3_stats]) + cnt
     except:
       user_total = cnt
-    db[userID] = user_total
+    db[userID][c3_stats] = user_total
     bot_message = "colon three <:copium:856725125507186708>"
     await message.channel.send(bot_message)
     await message.add_reaction('<:copium:856725125507186708>')
+    
+  #wordle
+  if msg.startswith('Wordle'):
+    idx = msg.index('/')
+    if (msg[idx - 1:idx].lower() == 'x'):
+      await message.add_reaction('<:pepega:861280783968894987>')
+    else:
+      num_tries = int(msg[idx - 1:idx])
+      try:
+        user_wordle_stats = db[userID][wordle_stats_]
+      except:
+        user_wordle_stats = [0, 999, 0]
+      #update
+      user_wordle_stats[0] += 1
+      user_wordle_stats[1] = min(num_tries, user_wordle_stats[1])
+      user_wordle_stats[2] += num_tries
+      db[userID][wordle_stats_] = [user_wordle_stats[0], user_wordle_stats[1], user_wordle_stats[2]]
+      if (num_tries < 3):
+        await message.add_reaction('<:poggies:748558867272695819>')
+      else:
+        await message.add_reaction('<:pepepoint:748563096616042618>')
+    
+    
 bot.run(token)
 keep_alive()
-#colon_three_copium_counts.close()
