@@ -41,17 +41,17 @@ async def on_ready():
     print(bot.user.id)
     print('------')
 
-@bot.command()
-async def transfer_stats(ctx):
-  keys = db.keys()
-  for k in keys:
-    value = db[k]
-    print(value, type(value))
-    db[k] = dict()
-    db[k][c3_stats] = value
-  await ctx.send('done transfering info')  
+#@bot.command(brief='Temp command to transfer stats into new format', description='Temp command to transfer stats into new format, depricated.')
+#async def transfer_stats(ctx):
+#  keys = db.keys()
+#  for k in keys:
+#    value = db[k]
+#    print(value, type(value))
+#    db[k] = dict()
+#    db[k][c3_stats] = value
+#  await ctx.send('done transfering info')  
   
-@bot.command()
+@bot.command(brief='Leaderboard of :3', description='Leaderboard of :3 usages')
 async def leaderboard(ctx):
   keys = db.keys()
   leaderboard_list = []
@@ -68,7 +68,7 @@ async def leaderboard(ctx):
     em.add_field(name=f"{str(i + 1)}. {name}", value=f"{value}", inline=False)
   await ctx.send(embed=em)
   
-@bot.command()
+@bot.command(brief='Show your :3 count', description='Show your :3 count')
 async def count(ctx):
   userID = ctx.author.id
   userID_string = '<@!' + str(userID) + '>'
@@ -91,8 +91,7 @@ async def count(ctx):
     bot_message = "colon three <:copium:856725125507186708>\n" + userID_string + " has used :3 " + str(user_total) + " times! Woman is that you?<:womanhappy:814749175031136266>"
   await ctx.send(bot_message)
 
-@bot.command()
-
+@bot.command(brief='Get Leaderboard of Average Wordle Scores', description='Get Leaderboard of Average Wordle Scores, Best SCore feature coming soon tm')
 async def wordle(ctx):
   keys = db.keys()
   leaderboard_list = []
@@ -100,8 +99,8 @@ async def wordle(ctx):
     values = db[k]
     if wordle_stats_ in values.keys() and values[wordle_stats_][0] > 0:
       leaderboard_list.append(WordleLeaderBoardPosition(k, values[wordle_stats_]))
-  top = sorted(leaderboard_list, key=lambda x: x.average, reverse=True)
-  em = discord.Embed(title=f"Wordle Leaderboard",     description="Leaderboard of Wordle Stats!")
+  top = sorted(leaderboard_list, key=lambda x: x.average)
+  em = discord.Embed(title=f"Wordle Leaderboard",     description="Leaderboard of Average Wordle Scores!")
   for i in range(len(top)):
     user = top[i].user
     name = await bot.fetch_user(user)
@@ -141,6 +140,8 @@ async def on_message(message):
       user_total = int(db[userID][c3_stats]) + cnt
     except:
       user_total = cnt
+    if userID not in db.keys() or type(db[userID] != dict()):
+        db[userID] = dict()
     db[userID][c3_stats] = user_total
     bot_message = "colon three <:copium:856725125507186708>"
     await message.channel.send(bot_message)
@@ -161,8 +162,8 @@ async def on_message(message):
       user_wordle_stats[0] += 1
       user_wordle_stats[1] = min(num_tries, user_wordle_stats[1])
       user_wordle_stats[2] += num_tries
-      if userID not in db.keys():
-        db[userID] = []
+      if userID not in db.keys() or type(db[userID] != dict()):
+        db[userID] = dict()
       db[userID][wordle_stats_] = [user_wordle_stats[0], user_wordle_stats[1], user_wordle_stats[2]]
       if (num_tries < 3):
         await message.add_reaction('<:poggies:748558867272695819>')
