@@ -19,6 +19,9 @@ description = '''A lovely bot that keeps track of the number of colon threes a u
 intents = discord.Intents.default()
 intents.members = True
 
+client = discord.Client()
+
+
 bot = commands.Bot(command_prefix='!', description=description, intents=intents, case_insensitive=True)
 
 class LeaderBoardPosition:
@@ -170,5 +173,6 @@ async def on_message(message):
       else:
         await message.add_reaction('<:pepepoint:748563096616042618>')
     
+
 keep_alive()    
 bot.run(token)
