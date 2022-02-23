@@ -19,7 +19,7 @@ description = '''A lovely bot that keeps track of the number of colon threes a u
 intents = discord.Intents.default()
 intents.members = True
 
-bot = commands.Bot(command_prefix='!', description=description, intents=intents)
+bot = commands.Bot(command_prefix='!', description=description, intents=intents, case_insensitive=True)
 
 class LeaderBoardPosition:
     def __init__(self, user, count):
@@ -161,12 +161,13 @@ async def on_message(message):
       user_wordle_stats[0] += 1
       user_wordle_stats[1] = min(num_tries, user_wordle_stats[1])
       user_wordle_stats[2] += num_tries
+      if userID not in db.keys():
+        db[userID] = []
       db[userID][wordle_stats_] = [user_wordle_stats[0], user_wordle_stats[1], user_wordle_stats[2]]
       if (num_tries < 3):
         await message.add_reaction('<:poggies:748558867272695819>')
       else:
         await message.add_reaction('<:pepepoint:748563096616042618>')
     
-    
+keep_alive()    
 bot.run(token)
-keep_alive()
