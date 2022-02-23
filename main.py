@@ -10,12 +10,7 @@ from replit import db
 token = os.environ['token']
 
 client = discord.Client()
-user_stats = None
-user_stats_file = Path("user_counter.json")
-if user_stats_file.is_file():
-  user_counter = json.load(open("user_counter.json"))
-else:
-  user_counter = {}
+
 
 
 class LeaderBoardPosition:
@@ -116,5 +111,4 @@ async def on_message(message):
     
 keep_alive()
 client.run(token)
-colon_three_copium_counts.close()
 
