@@ -8,7 +8,7 @@ class LeaderBoardPosition:
         self.user = user
         self.count = count
 
-class C3Commands(commands.Cog):
+class ColonThree(commands.Cog):
   def __init__(self, bot: commands.Bot):
     self.bot = bot
 
@@ -53,4 +53,4 @@ class C3Commands(commands.Cog):
     await ctx.send(bot_message)
 
 def setup(bot: commands.Bot):
-    bot.add_cog(C3Commands(bot))
+    bot.add_cog(ColonThree(bot))

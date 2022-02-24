@@ -13,18 +13,18 @@ c3_stats = 'c3_cnt'
 wordle_stats_ = 'wordle_stats'
 
 token = os.environ['token']
-description = '''A lovely bot that keeps track of the number of colon threes a user sends as well as having a Wordle leaderboard.'''
+bot_description = '''A lovely bot that keeps track of the number of colon threes a user sends as well as having a Wordle leaderboard.'''
 intents = discord.Intents.default()
 intents.members = True
 client = discord.Client()
-bot = commands.Bot(command_prefix='!', description=description, intents=intents, case_insensitive=True)
+bot = commands.Bot(command_prefix='!', description=bot_description, intents=intents, case_insensitive=True)
 
 class MyHelp(commands.HelpCommand):
   def get_command_signature(self, command):
     return '%s%s %s' % (self.clean_prefix, command.qualified_name, command.signature)
      
   async def send_bot_help(self, mapping):
-    embed = discord.Embed(title="Help")
+    embed = discord.Embed(title="Help", description=bot_description)
     for cog, commands in mapping.items():
       filtered = await self.filter_commands(commands, sort=True)
       command_signatures = [self.get_command_signature(c) for c in filtered]

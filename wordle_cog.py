@@ -11,7 +11,7 @@ class WordleLeaderBoardPosition:
         self.average = wordle_stats[2] / wordle_stats[0]
         self.best_score = wordle_stats[1]
 
-class WordleCommands(commands.Cog):
+class Wordle(commands.Cog):
   def __init__(self, bot: commands.Bot):
     self.bot = bot
 
@@ -38,4 +38,4 @@ class WordleCommands(commands.Cog):
   #    db[k][wordle_stats_] = [0, 999, 0]
 
 def setup(bot: commands.Bot):
-    bot.add_cog(WordleCommands(bot))
+    bot.add_cog(Wordle(bot))
