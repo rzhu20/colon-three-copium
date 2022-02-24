@@ -114,7 +114,7 @@ async def on_message(message):
       if userID not in db.keys() or type(db[userID] != dict()):
         db[userID] = dict()
       db[userID][wordle_stats_] = [user_wordle_stats[0], user_wordle_stats[1], user_wordle_stats[2]]
-      if (num_tries < 3):
+      if (num_tries <= 3):
         await message.add_reaction('<:poggies:748558867272695819>')
       else:
         await message.add_reaction('<:pepepoint:748563096616042618>')
