@@ -2,10 +2,11 @@
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import CommandNotFound
+from discord_components import DiscordComponents, Select, SelectOption, Button, ButtonStyle
+from discord.utils import get
 import os
 import os.path
-import json
-from pathlib import Path
 from keep_alive import keep_alive
 from replit import db
 
@@ -16,7 +17,8 @@ token = os.environ['token']
 bot_description = '''A lovely bot that keeps track of the number of colon threes a user sends as well as having a Wordle leaderboard.'''
 intents = discord.Intents.default()
 intents.members = True
-client = discord.Client()
+client = discord.Client(intents=intents)
+DiscordComponents(client)
 bot = commands.Bot(command_prefix='!', description=bot_description, intents=intents, case_insensitive=True)
 
 class MyHelp(commands.HelpCommand):
@@ -25,8 +27,8 @@ class MyHelp(commands.HelpCommand):
      
   async def send_bot_help(self, mapping):
     embed = discord.Embed(title="Help", description=bot_description)
-    for cog, commands in mapping.items():
-      filtered = await self.filter_commands(commands, sort=True)
+    for cog, cmds in mapping.items():
+      filtered = await self.filter_commands(cmds, sort=True)
       command_signatures = [self.get_command_signature(c) for c in filtered]
       if command_signatures:
         cog_name = getattr(cog, "qualified_name", "No Category")
@@ -62,6 +64,29 @@ async def on_ready():
     print('------')
 
 
+'''@bot.command()
+async def button(ctx):
+  await ctx.send("Hello, World!", components = [Button(label = "WOW button!", custom_id = "button1")])
+  print('button.')
+  interaction = await bot.wait_for("button_click", check=lambda i:i.custom_id == "button1")
+  print('hi')
+  await interaction.send(content = "Button clicked!")
+  print('ok')
+  
+
+@bot.command()
+async def select(ctx):
+  await ctx.send("Hello, World!", components = [Select(placeholder = "Select something!", options = [SelectOption(label = "A", value = "A"), SelectOption(label = "B", value = "B")])])
+
+  interaction = await bot.wait_for("select_option")
+  await interaction.send(content = f"{interaction.values[0]} selected!")
+'''
+
+@bot.event
+async def on_command_error(ctx, error):
+  if isinstance(error, CommandNotFound):
+    await ctx.channel.send("Invalid Command!")
+
 @bot.event 
 async def on_message(message):
   if message.author == bot.user:
@@ -70,7 +95,6 @@ async def on_message(message):
     try:
       await bot.process_commands(message)
     except:
-      await message.channel.send("Invalid Command!")
       return
   
   userID = str(message.author.id)
@@ -118,6 +142,33 @@ async def on_message(message):
         await message.add_reaction('<:poggies:748558867272695819>')
       else:
         await message.add_reaction('<:pepepoint:748563096616042618>')
-    
+
+
+'''class Select(discord.ui.Select):
+    def __init__(self):
+        options=[
+            discord.SelectOption(label="Option 1",emoji="👌",description="This is option 1!"),
+            discord.SelectOption(label="Option 2",emoji="✨",description="This is option 2!"),
+            discord.SelectOption(label="Option 3",emoji="🎭",description="This is option 3!")
+            ]
+        super().__init__(placeholder="Select an option",max_values=1,min_values=1,options=options)
+    async def callback(self, interaction: discord.Interaction):
+        if self.values[0] == "Option 1":
+            await interaction.response.edit_message(content="This is the first option from the entire list!")
+        elif self.values[0] == "Option 2":
+            await interaction.response.send_message("This is the second option from the list entire wooo!",ephemeral=False)
+        elif self.values[0] == "Option 3":
+            await interaction.response.send_message("Third One!",ephemeral=True)
+
+class SelectView(discord.ui.View):
+    def __init__(self, *, timeout = 180):
+        super().__init__(timeout=timeout)
+        self.add_item(Select())
+
+@bot.command()
+async def menu(ctx):
+    await ctx.send("Menus!",view=SelectView())
+'''
+  
 keep_alive()    
 bot.run(token)
